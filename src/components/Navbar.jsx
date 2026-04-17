@@ -36,21 +36,21 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-50 border-b" style={{ background: 'rgba(10,10,15,0.9)', borderColor: 'var(--color-border)', backdropFilter: 'blur(12px)' }}>
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 border-b" style={{ background: 'rgba(255,255,255,0.96)', borderColor: 'var(--color-border)', backdropFilter: 'blur(8px)' }}>
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 min-h-14 sm:h-16 flex items-center justify-between gap-2">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="text-2xl">⚡</span>
-            <span className="text-xl font-black tracking-tight" style={{ color: 'var(--color-text)' }}>
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2 group min-w-0">
+            <span className="text-lg sm:text-2xl">⚡</span>
+            <span className="text-sm sm:text-xl font-black tracking-tight truncate" style={{ color: 'var(--color-text)' }}>
               Flash<span style={{ color: 'var(--color-accent)' }}>Drop</span>
             </span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full border ml-1" style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)', fontSize: '10px' }}>
+            <span className="hidden sm:inline-flex text-xs font-semibold px-2 py-0.5 rounded-full border ml-1" style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-border)', fontSize: '10px' }}>
               NSEC
             </span>
           </Link>
 
           {/* Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {!authReady ? (
               <span className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
                 Loading...
@@ -60,19 +60,22 @@ export default function Navbar() {
                 <button
                   id="sell-btn"
                   onClick={() => setShowModal(true)}
-                  className="btn-primary text-sm"
+                  className="bg-accent text-[var(--color-bg)] font-black uppercase tracking-wide text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 border-[3px] border-[var(--color-border)] shadow-[3px_3px_0px_0px_var(--color-border)] leading-none"
                 >
-                  + Sell My Stuff
+                  <span className="sm:hidden">Sell</span>
+                  <span className="hidden sm:inline">+ Sell My Stuff</span>
                 </button>
-                <Link to="/my-listings" className="btn-ghost text-sm">
-                  My Listings
+                <Link to="/my-listings" className="bg-white text-[var(--color-text)] font-black uppercase tracking-wide text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 border-[3px] border-[var(--color-border)] shadow-[3px_3px_0px_0px_var(--color-border)] leading-none">
+                  <span className="sm:hidden">My</span>
+                  <span className="hidden sm:inline">My Listings</span>
                 </Link>
-                <button onClick={handleLogout} className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                  Sign out
+                <button onClick={handleLogout} className="text-[10px] sm:text-xs font-black uppercase tracking-wide px-1 sm:px-2" style={{ color: 'var(--color-text-muted)' }}>
+                  <span className="sm:hidden">⎋</span>
+                  <span className="hidden sm:inline">Sign out</span>
                 </button>
               </>
             ) : (
-              <Link to="/login" id="login-btn" className="btn-primary text-sm">
+              <Link to="/login" id="login-btn" className="bg-accent text-[var(--color-bg)] font-black uppercase tracking-wide text-[10px] sm:text-xs px-2 sm:px-3 py-1.5 sm:py-2 border-[3px] border-[var(--color-border)] shadow-[3px_3px_0px_0px_var(--color-border)] leading-none">
                 Sign In
               </Link>
             )}
