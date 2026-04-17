@@ -1,0 +1,57 @@
+# AI & Tooling
+.agent/
+.agents/
+.gemini/
+.gsd/
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/dist
+/build
+
+# Vercel
+.vercel
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Docs & Agent Scaffolding
+GSD-STYLE.md
+PROJECT_RULES.md
+NSEC_FlashDrop_HackathonPlan.md
+adapters/
+model_capabilities.yaml
+docs/model-selection-playbook.md
+docs/runbook.md
+docs/token-optimization-guide.md
+
+# Agent Scripts
+scripts/search_repo.*
+scripts/setup_search.*
+scripts/validate-*

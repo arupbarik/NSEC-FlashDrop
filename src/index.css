@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #F4F4F0;
+  --color-card: #FFFFFF;
+  --color-accent: #FF3366;
+  --color-fomo: #FF2D55;
+  --color-available: #00E5FF;
+  --color-text: #111111;
+  --color-text-muted: #444444;
+  --color-border: #111111;
+
+  --border-width: 3px;
+  --shadow-brutal: 5px 5px 0px 0px var(--color-border);
+  --shadow-brutal-hover: 7px 7px 0px 0px var(--color-border);
+  --shadow-brutal-active: 0px 0px 0px 0px var(--color-border);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 14px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+  border-left: var(--border-width) solid var(--color-border);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-left: var(--border-width) solid var(--color-border);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-accent text-[var(--color-bg)] font-black py-3 px-6 
+      border-[3px] border-[var(--color-border)] uppercase tracking-wider
+      transition-all duration-150 active:translate-x-1 active:translate-y-1;
+    box-shadow: var(--shadow-brutal);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: var(--shadow-brutal-hover);
+    transform: translate(-2px, -2px);
+  }
+
+  .btn-primary:active {
+    box-shadow: var(--shadow-brutal-active);
+  }
+
+  .btn-ghost {
+    @apply bg-white text-[var(--color-text)] font-black uppercase tracking-wider
+      py-2 px-4 border-[3px] border-[var(--color-border)] 
+      transition-all duration-150 active:translate-x-1 active:translate-y-1;
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .btn-ghost:hover {
+    box-shadow: var(--shadow-brutal-hover);
+    transform: translate(-2px, -2px);
+  }
+
+  .btn-ghost:active {
+    box-shadow: var(--shadow-brutal-active);
+  }
+
+  .card {
+    @apply bg-card border-[3px] border-[var(--color-border)] overflow-hidden
+      transition-all duration-200;
+    box-shadow: var(--shadow-brutal);
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-brutal-hover);
+    transform: translate(-2px, -2px);
+  }
+
+  .input-field {
+    @apply w-full bg-white border-[3px] border-[var(--color-border)] text-[var(--color-text)]
+      px-4 py-3 outline-none focus:bg-[#FFFFA5] transition-colors
+      placeholder-[var(--color-text-muted)] font-bold;
+    box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.05);
+  }
+
+  .badge-fomo {
+    @apply bg-fomo text-white text-xs font-black px-2 py-1 
+      border-[3px] border-[var(--color-border)] uppercase tracking-wider animate-pulse inline-block;
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+
+  .badge-sold {
+    @apply bg-[#CCCCCC] text-[#111111] text-xs font-black px-2 py-1 
+      border-[3px] border-[var(--color-border)] uppercase tracking-wider inline-block;
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+
+  .badge-available {
+    @apply bg-available text-[#111111] text-xs font-black px-2 py-1 
+      border-[3px] border-[var(--color-border)] uppercase tracking-wider inline-block;
+    box-shadow: 3px 3px 0px 0px var(--color-border);
+  }
+}
