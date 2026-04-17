@@ -17,6 +17,8 @@
   --color-surface-muted: #f1f1f1;
   --color-input-bg: #ffffff;
   --color-input-focus: #ffffa5;
+  --color-price-bg: #ffffa5;
+  --color-price-text: #111111;
 
   --border-width: 3px;
   --shadow-brutal: 5px 5px 0px 0px var(--color-border);
@@ -37,6 +39,8 @@
   --color-surface-muted: #252b36;
   --color-input-bg: #1f2530;
   --color-input-focus: #2e3645;
+  --color-price-bg: #ffca6b;
+  --color-price-text: #1a1d23;
 }
 
 * {

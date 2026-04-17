@@ -116,7 +116,10 @@ export default function ItemCard({ item, currentUser }) {
           <h3 className="font-black text-base leading-tight line-clamp-2" style={{ color: 'var(--color-text)' }}>
             {item.title}
           </h3>
-          <span className="font-black text-lg whitespace-nowrap bg-[#FFFFA5] px-2 py-0.5 border-[3px] border-[var(--color-border)] shadow-[2px_2px_0px_0px_var(--color-border)] transform rotate-2">
+          <span
+            className="font-black text-lg whitespace-nowrap px-2 py-0.5 border-[3px] border-[var(--color-border)] shadow-[2px_2px_0px_0px_var(--color-border)] transform rotate-2"
+            style={{ background: 'var(--color-price-bg)', color: 'var(--color-price-text)' }}
+          >
             ₹{item.price}
           </span>
         </div>
