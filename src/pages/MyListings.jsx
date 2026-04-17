@@ -10,44 +10,113 @@ const CONDITION_COLORS = {
 }
 
 export default function MyListings() {
-  const [user, setUser] = useState(null)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [marking, setMarking] = useState(null)
+  const [error, setError] = useState('')
+  const [currentUserId, setCurrentUserId] = useState(null)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) {
-        navigate('/login')
-        return
-      }
-      setUser(user)
-      fetchMyItems(user.id)
-    })
-  }, [navigate])
 
   const fetchMyItems = async (userId) => {
     setLoading(true)
-    const { data } = await supabase
+    setError('')
+    const { data, error: fetchError } = await supabase
       .from('items')
       .select('*')
       .eq('seller_id', userId)
       .order('created_at', { ascending: false })
-    setItems(data || [])
+
+    if (fetchError) {
+      setError(fetchError.message)
+      setItems([])
+    } else {
+      setItems(data || [])
+    }
     setLoading(false)
   }
 
+  useEffect(() => {
+    let active = true
+
+    const hydrate = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!active) return
+
+      if (!session?.user) {
+        navigate('/login', { replace: true })
+        return
+      }
+
+      setCurrentUserId(session.user.id)
+      await fetchMyItems(session.user.id)
+    }
+
+    hydrate()
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session?.user) {
+        navigate('/login', { replace: true })
+        return
+      }
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setCurrentUserId(session.user.id)
+        fetchMyItems(session.user.id)
+      }
+    })
+
+    return () => {
+      active = false
+      listener.subscription.unsubscribe()
+    }
+  }, [navigate])
+
   const markAsSold = async (itemId) => {
     setMarking(itemId)
-    await supabase.from('items').update({ is_sold: true }).eq('id', itemId)
+    setError('')
+
+    const { data: updatedRows, error: updateError } = await supabase
+      .from('items')
+      .update({ is_sold: true })
+      .eq('id', itemId)
+      .eq('seller_id', currentUserId)
+      .select('id')
+
+    if (updateError) {
+      setError(updateError.message)
+      setMarking(null)
+      return
+    }
+    if (!updatedRows?.length) {
+      setError('Listing not found or you do not have access.')
+      setMarking(null)
+      return
+    }
+
     setItems(prev => prev.map(i => i.id === itemId ? { ...i, is_sold: true } : i))
     setMarking(null)
   }
 
   const deleteItem = async (itemId) => {
     if (!window.confirm('Delete this listing permanently?')) return
-    await supabase.from('items').delete().eq('id', itemId)
+    setError('')
+
+    const { data: deletedRows, error: deleteError } = await supabase
+      .from('items')
+      .delete()
+      .eq('id', itemId)
+      .eq('seller_id', currentUserId)
+      .select('id')
+
+    if (deleteError) {
+      setError(deleteError.message)
+      return
+    }
+    if (!deletedRows?.length) {
+      setError('Listing not found or you do not have access.')
+      return
+    }
+
     setItems(prev => prev.filter(i => i.id !== itemId))
   }
 
@@ -74,6 +143,12 @@ export default function MyListings() {
           {items.length} listing{items.length !== 1 ? 's' : ''} total
         </p>
       </div>
+
+      {error && (
+        <p className="text-sm font-semibold" style={{ color: 'var(--color-fomo)' }}>
+          {error}
+        </p>
+      )}
 
       {items.length === 0 && (
         <div className="text-center py-16">

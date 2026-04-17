@@ -5,16 +5,28 @@ import ListItemModal from './ListItemModal'
 
 export default function Navbar() {
   const [user, setUser] = useState(null)
+  const [authReady, setAuthReady] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    let active = true
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return
+      setUser(session?.user ?? null)
+      setAuthReady(true)
+    })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      setAuthReady(true)
     })
-    return () => listener.subscription.unsubscribe()
+
+    return () => {
+      active = false
+      listener.subscription.unsubscribe()
+    }
   }, [])
 
   const handleLogout = async () => {
@@ -39,7 +51,11 @@ export default function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
-            {user ? (
+            {!authReady ? (
+              <span className="text-xs font-semibold" style={{ color: 'var(--color-text-muted)' }}>
+                Loading...
+              </span>
+            ) : user ? (
               <>
                 <button
                   id="sell-btn"

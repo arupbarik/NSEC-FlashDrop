@@ -25,7 +25,7 @@ export default function CountdownTimer({ expiresAt }) {
     }
 
     tick()
-    const id = setInterval(tick, 30000) // update every 30s
+    const id = setInterval(tick, 60000) // update every 60s
     return () => clearInterval(id)
   }, [expiresAt])
 

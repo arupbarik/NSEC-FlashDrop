@@ -3,16 +3,16 @@ import { useItems } from '../hooks/useItems'
 import { supabase } from '../lib/supabase'
 import ItemGrid from '../components/ItemGrid'
 import CategoryFilter from '../components/CategoryFilter'
-import ListItemModal from '../components/ListItemModal'
 
 export default function Home() {
   const [category, setCategory] = useState('All')
   const [user, setUser] = useState(null)
-  const [showModal, setShowModal] = useState(false)
   const { items, loading, error } = useItems(category)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user))
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+    })
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       setUser(session?.user ?? null)
     })
@@ -62,8 +62,6 @@ export default function Home() {
 
       {/* Grid */}
       <ItemGrid items={items} loading={loading} error={error} currentUser={user} />
-
-      {showModal && <ListItemModal onClose={() => setShowModal(false)} />}
     </main>
   )
 }

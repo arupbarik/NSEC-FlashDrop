@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
 const CATEGORIES = ['Books', 'Electronics', 'Clothing', 'Furniture', 'Other']
 const CONDITIONS = ['Like New', 'Good', 'Fair']
 
 export default function ListItemModal({ onClose }) {
+  const minExpiry = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -26,9 +27,22 @@ export default function ListItemModal({ onClose }) {
   const handleImage = e => {
     const file = e.target.files[0]
     if (!file) return
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview)
+    }
+
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
   }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview)
+      }
+    }
+  }, [imagePreview])
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -38,16 +52,53 @@ export default function ListItemModal({ onClose }) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('You must be signed in to post a listing.')
+      if (!user.email?.toLowerCase().endsWith('@nsec.ac.in')) {
+        throw new Error('Only @nsec.ac.in accounts can create listings.')
+      }
+
+      const parsedPrice = Number.parseInt(form.price, 10)
+      if (!Number.isInteger(parsedPrice) || parsedPrice < 1) {
+        throw new Error('Price must be a positive number.')
+      }
+
+      const normalizedTitle = form.title.trim()
+      if (!normalizedTitle) {
+        throw new Error('Item title is required.')
+      }
+
+      const sanitizedWhatsapp = form.seller_whatsapp.replace(/\D/g, '')
+      if (sanitizedWhatsapp.length < 10) {
+        throw new Error('Please enter a valid WhatsApp number with country code.')
+      }
+
+      const expiryDate = new Date(form.expires_at)
+      if (Number.isNaN(expiryDate.getTime())) {
+        throw new Error('Please provide a valid expiry date.')
+      }
+      if (expiryDate <= new Date()) {
+        throw new Error('Expiry date must be in the future.')
+      }
 
       let image_url = null
 
       // Upload image if selected
       if (imageFile) {
+        if (!imageFile.type.startsWith('image/')) {
+          throw new Error('Only image uploads are allowed.')
+        }
+        if (imageFile.size > 5 * 1024 * 1024) {
+          throw new Error('Image size must be under 5MB.')
+        }
+
         const ext = imageFile.name.split('.').pop()
-        const filename = `${user.id}-${Date.now()}.${ext}`
+        const filename = `${user.id}/${Date.now()}.${ext}`
         const { error: uploadError } = await supabase.storage
           .from('item-images')
-          .upload(filename, imageFile)
+          .upload(filename, imageFile, {
+            cacheControl: '3600',
+            contentType: imageFile.type,
+            upsert: false,
+          })
         if (uploadError) throw uploadError
 
         const { data: urlData } = supabase.storage
@@ -59,14 +110,14 @@ export default function ListItemModal({ onClose }) {
       const { error: insertError } = await supabase.from('items').insert({
         seller_id: user.id,
         seller_name: user.email.split('@')[0],
-        seller_whatsapp: form.seller_whatsapp.replace(/\D/g, ''),
-        title: form.title,
-        description: form.description,
-        price: parseInt(form.price, 10),
+        seller_whatsapp: sanitizedWhatsapp,
+        title: normalizedTitle,
+        description: form.description.trim(),
+        price: parsedPrice,
         category: form.category,
         condition: form.condition,
         image_url,
-        expires_at: new Date(form.expires_at).toISOString(),
+        expires_at: expiryDate.toISOString(),
       })
 
       if (insertError) throw insertError
@@ -152,9 +203,9 @@ export default function ListItemModal({ onClose }) {
           {/* Expiry */}
           <div>
             <label className="block text-xs font-semibold mb-2" style={{ color: 'var(--color-text-muted)' }}>Leave Date / Expiry *</label>
-            <input id="expiry-input" name="expires_at" type="datetime-local" value={form.expires_at} onChange={handleChange}
-              required className="input-field" />
-          </div>
+             <input id="expiry-input" name="expires_at" type="datetime-local" value={form.expires_at} onChange={handleChange}
+               min={minExpiry} required className="input-field" />
+           </div>
 
           {/* Description */}
           <div>

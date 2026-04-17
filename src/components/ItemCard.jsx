@@ -2,6 +2,7 @@ import CountdownTimer from './CountdownTimer'
 import FomoBadge from './FomoBadge'
 import { supabase } from '../lib/supabase'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const CONDITION_COLORS = {
   'Like New': 'text-available',
@@ -29,24 +30,50 @@ function openWhatsApp(sellerPhone, itemTitle, price) {
 
 export default function ItemCard({ item, currentUser }) {
   const [registering, setRegistering] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const navigate = useNavigate()
 
   const handleIWantThis = async () => {
-    // Register interest in Supabase if logged in
-    if (currentUser) {
-      setRegistering(true)
-      try {
-        await supabase
-          .from('interest_clicks')
-          .upsert({ item_id: item.id, user_id: currentUser.id })
+    setActionError('')
 
-        // Increment the counter via RPC
-        await supabase.rpc('increment_interest', { item_id: item.id })
-      } catch (e) {
-        // Silent fail — still open WhatsApp
-      } finally {
-        setRegistering(false)
-      }
+    if (!item.seller_whatsapp) {
+      setActionError('Seller WhatsApp number is missing for this listing.')
+      return
     }
+
+    if (!currentUser) {
+      setActionError('Sign in with your NSEC email to message sellers.')
+      navigate('/login')
+      return
+    }
+
+    // Register interest in Supabase if logged in
+    setRegistering(true)
+    try {
+      const { data: insertedRows, error: interestError } = await supabase
+        .from('interest_clicks')
+        .upsert(
+          { item_id: item.id, user_id: currentUser.id },
+          { onConflict: 'item_id,user_id', ignoreDuplicates: true }
+        )
+        .select('id')
+
+      if (interestError) {
+        throw interestError
+      }
+
+      if (insertedRows?.length) {
+        const { error: rpcError } = await supabase.rpc('increment_interest', { item_id: item.id })
+        if (rpcError) {
+          throw rpcError
+        }
+      }
+    } catch (error) {
+      setActionError(error.message || 'Could not update interest count.')
+    } finally {
+      setRegistering(false)
+    }
+
     openWhatsApp(item.seller_whatsapp, item.title, item.price)
   }
 
@@ -113,14 +140,21 @@ export default function ItemCard({ item, currentUser }) {
           <CountdownTimer expiresAt={item.expires_at} />
 
           {!item.is_sold && (
-            <button
-              id={`want-${item.id}`}
-              onClick={handleIWantThis}
-              disabled={registering}
-              className="btn-primary text-sm py-2 px-4 disabled:opacity-60"
-            >
-              {registering ? '...' : '💬 I Want This'}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button
+                id={`want-${item.id}`}
+                onClick={handleIWantThis}
+                disabled={registering}
+                className="btn-primary text-sm py-2 px-4 disabled:opacity-60"
+              >
+                {registering ? '...' : '💬 I Want This'}
+              </button>
+              {actionError && (
+                <span className="text-[10px] font-semibold text-right max-w-[140px]" style={{ color: 'var(--color-fomo)' }}>
+                  {actionError}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>

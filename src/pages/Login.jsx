@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -9,18 +9,35 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate('/', { replace: true })
+      }
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        navigate('/', { replace: true })
+      }
+    })
+
+    return () => listener.subscription.unsubscribe()
+  }, [navigate])
+
   const handleLogin = async e => {
     e.preventDefault()
     setError('')
+    const normalizedEmail = email.trim().toLowerCase()
 
-    if (!email.endsWith('@nsec.ac.in')) {
+    if (!normalizedEmail.endsWith('@nsec.ac.in')) {
       setError('⚠️ Only @nsec.ac.in email addresses can sign in.')
       return
     }
 
     setLoading(true)
     const { error: authError } = await supabase.auth.signInWithOtp({
-      email,
+      email: normalizedEmail,
       options: { emailRedirectTo: window.location.origin },
     })
     setLoading(false)
@@ -28,6 +45,7 @@ export default function Login() {
     if (authError) {
       setError(authError.message)
     } else {
+      setEmail(normalizedEmail)
       setSent(true)
     }
   }

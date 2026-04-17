@@ -10,8 +10,10 @@ export function useItems(category = null) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const fetchItems = async () => {
-    setLoading(true)
+  const fetchItems = async ({ withLoader = true } = {}) => {
+    if (withLoader) {
+      setLoading(true)
+    }
     setError(null)
 
     let query = supabase
@@ -26,13 +28,15 @@ export function useItems(category = null) {
     }
 
     const { data, error: fetchError } = await query
-
     if (fetchError) {
       setError(fetchError.message)
     } else {
       setItems(data || [])
     }
-    setLoading(false)
+
+    if (withLoader) {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -42,7 +46,7 @@ export function useItems(category = null) {
     const channel = supabase
       .channel('items-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, () => {
-        fetchItems()
+        fetchItems({ withLoader: false })
       })
       .subscribe()
 
