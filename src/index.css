@@ -290,6 +290,9 @@ body {
   position: relative;
   display: inline-block;
   color: var(--glitch-base);
+  text-shadow:
+    1px 1px 0 rgba(17, 17, 17, 0.9),
+    -1px -1px 0 rgba(255, 255, 255, 0.45);
   animation: glitch-aberration 2.1s infinite linear;
 }
 
@@ -303,7 +306,8 @@ body {
 
 .glitch-container::before {
   color: var(--glitch-before);
-  transform: translate3d(2px, 0, 0);
+  opacity: 0.72;
+  transform: translate3d(1px, 0, 0);
   clip-path: inset(0 0 48% 0);
   animation: glitch-aberration 1.4s infinite linear reverse;
 }
