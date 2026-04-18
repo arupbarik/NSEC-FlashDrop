@@ -1,3 +1,20 @@
+<div align="center">
+
+# ⚡ FlashDrop
+
+### **Live → [https://flashdrop.vercel.app](https://flashdrop.vercel.app)**
+
+A hyper-local, time-limited circular economy marketplace built exclusively for **NSEC students**.  
+List. Claim. Repeat — before the clock runs out.
+
+---
+
+**Built for [INnovatrix](https://avenir26.nsec.ac.in) @ Avenir '26 Tech Fest — NSEC, Kolkata**
+
+</div>
+
+---
+
 ## 📸 Screenshots
 
 > _Screenshots will be added here_
