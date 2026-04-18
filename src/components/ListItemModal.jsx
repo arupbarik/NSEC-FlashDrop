@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { getSellerUsername, parseItemImages } from '../lib/itemMedia'
+import FomoBadge from './FomoBadge'
 
 function openWhatsApp(sellerPhone, itemTitle, price) {
   const message = encodeURIComponent(
@@ -14,6 +15,7 @@ export default function ListItemModal({ item, currentUser, onClose }) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [claiming, setClaiming] = useState(false)
   const [error, setError] = useState('')
+  const [interestedCount, setInterestedCount] = useState(Number(item?.interested_count) || 0)
   const navigate = useNavigate()
 
   const images = useMemo(() => parseItemImages(item), [item])
@@ -30,6 +32,10 @@ export default function ListItemModal({ item, currentUser, onClose }) {
     return () => window.removeEventListener('keydown', onEscape)
   }, [onClose])
 
+  useEffect(() => {
+    setInterestedCount(Number(item?.interested_count) || 0)
+  }, [item?.id, item?.interested_count])
+
   const handleClaim = async () => {
     setError('')
 
@@ -39,6 +45,7 @@ export default function ListItemModal({ item, currentUser, onClose }) {
     }
     if (!currentUser) {
       setError('Sign in with your NSEC email to claim this item.')
+      onClose()
       navigate('/login')
       return
     }
@@ -58,6 +65,7 @@ export default function ListItemModal({ item, currentUser, onClose }) {
       if (insertedRows?.length) {
         const { error: rpcError } = await supabase.rpc('increment_interest', { item_id: item.id })
         if (rpcError) throw rpcError
+        setInterestedCount(prev => prev + 1)
       }
 
       openWhatsApp(item.seller_whatsapp, item.title, item.price)
@@ -76,30 +84,30 @@ export default function ListItemModal({ item, currentUser, onClose }) {
     >
       <div
         className="w-full max-w-5xl max-h-[94vh] overflow-y-auto border-[4px]"
-        style={{ background: 'var(--color-card)', borderColor: 'var(--color-border)', boxShadow: '8px 8px 0px 0px rgba(0,0,0,1)' }}
+        style={{ background: 'var(--card-main)', borderColor: 'var(--border-main)', boxShadow: '8px 8px 0px 0px var(--shadow-hard)' }}
         onClick={event => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b-[4px]" style={{ borderColor: 'var(--color-border)' }}>
-          <h2 className="text-sm sm:text-lg font-black uppercase tracking-wide" style={{ color: 'var(--color-text)' }}>
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b-[4px]" style={{ borderColor: 'var(--border-main)' }}>
+          <h2 className="text-sm sm:text-lg font-black uppercase tracking-wide text-text-main">
             Listing Details
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="text-lg sm:text-xl font-black border-[4px] px-3 py-1 leading-none"
-            style={{ color: 'var(--color-text)', borderColor: 'var(--color-border)', background: 'var(--color-card)' }}
+            style={{ color: 'var(--text-main)', borderColor: 'var(--border-main)', background: 'var(--card-main)' }}
           >
             ×
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="p-4 sm:p-5 border-b-[4px] md:border-b-0 md:border-r-[4px]" style={{ borderColor: 'var(--color-border)' }}>
-            <div className="w-full aspect-square border-[4px] flex items-center justify-center overflow-hidden" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface-muted)' }}>
+          <div className="p-4 sm:p-5 border-b-[4px] md:border-b-0 md:border-r-[4px]" style={{ borderColor: 'var(--border-main)' }}>
+            <div className="w-full aspect-square border-[4px] flex items-center justify-center overflow-hidden" style={{ borderColor: 'var(--border-main)', background: 'var(--surface-muted)' }}>
               {activeImage ? (
                 <img src={activeImage} alt={item?.title || 'Listing image'} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-black uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>
+                <span className="text-sm font-black uppercase tracking-wide text-text-main">
                   No Image
                 </span>
               )}
@@ -114,8 +122,8 @@ export default function ListItemModal({ item, currentUser, onClose }) {
                     onClick={() => setActiveImageIndex(idx)}
                     className="aspect-square border-[4px] overflow-hidden"
                     style={{
-                      borderColor: activeImageIndex === idx ? 'var(--color-accent)' : 'var(--color-border)',
-                      boxShadow: activeImageIndex === idx ? '4px 4px 0px 0px rgba(0,0,0,1)' : 'none',
+                      borderColor: activeImageIndex === idx ? '#ff3366' : 'var(--border-main)',
+                      boxShadow: activeImageIndex === idx ? '4px 4px 0px 0px var(--shadow-hard)' : 'none',
                     }}
                   >
                     <img src={img} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
@@ -126,29 +134,33 @@ export default function ListItemModal({ item, currentUser, onClose }) {
           </div>
 
           <div className="p-4 sm:p-5 flex flex-col min-h-[420px]">
-            <p className="text-xs font-black uppercase tracking-wide mb-2" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-xs font-black uppercase tracking-wide mb-2 text-text-main">
               Seller: {sellerUsername}
             </p>
 
-            <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-tight" style={{ color: 'var(--color-text)' }}>
+            <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-tight text-text-main">
               {item?.title}
             </h3>
 
-            <p className="inline-block mt-3 text-xl sm:text-2xl font-black uppercase px-3 py-1 border-[4px]" style={{ background: 'var(--color-price-bg)', color: 'var(--color-price-text)', borderColor: 'var(--color-border)', boxShadow: '6px 6px 0px 0px rgba(0,0,0,1)' }}>
+            <p className="inline-block mt-3 text-xl sm:text-2xl font-black uppercase px-3 py-1 border-[4px]" style={{ background: 'var(--price-bg)', color: 'var(--price-text)', borderColor: 'var(--border-main)', boxShadow: '6px 6px 0px 0px var(--shadow-hard)' }}>
               ₹{item?.price}
             </p>
 
-            <div className="mt-5 border-[4px] p-3 min-h-[120px]" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface-muted)' }}>
-              <p className="text-xs font-black uppercase tracking-wide mb-2" style={{ color: 'var(--color-text-muted)' }}>
+            <div className="mt-3">
+              <FomoBadge count={interestedCount} />
+            </div>
+
+            <div className="mt-5 border-[4px] p-3 min-h-[120px]" style={{ borderColor: 'var(--border-main)', background: 'var(--surface-muted)' }}>
+              <p className="text-xs font-black uppercase tracking-wide mb-2 text-text-main">
                 Description
               </p>
-              <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text)' }}>
+              <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap text-text-main">
                 {item?.description || 'No description provided.'}
               </p>
             </div>
 
             {error && (
-              <p className="text-xs font-black uppercase mt-3" style={{ color: 'var(--color-fomo)' }}>
+              <p className="text-xs font-black uppercase mt-3" style={{ color: '#FF2D55' }}>
                 {error}
               </p>
             )}
@@ -160,7 +172,7 @@ export default function ListItemModal({ item, currentUser, onClose }) {
                 onClick={handleClaim}
                 disabled={claiming || item?.is_sold}
                 className="w-full border-[4px] py-4 px-4 text-sm sm:text-base font-black uppercase tracking-wider disabled:opacity-60"
-                style={{ color: 'var(--color-bg)', background: 'var(--color-accent)', borderColor: 'var(--color-border)', boxShadow: '8px 8px 0px 0px rgba(0,0,0,1)' }}
+                style={{ color: 'var(--bg-main)', background: '#ff3366', borderColor: 'var(--border-main)', boxShadow: '8px 8px 0px 0px var(--shadow-hard)' }}
               >
                 {item?.is_sold ? 'Already Sold' : claiming ? 'Claiming...' : 'Claim on WhatsApp'}
               </button>
